@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_ml_vision/google_ml_vision.dart';
 
 void main() {
   runApp(MyApp());
@@ -16,12 +16,42 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   File image_to_Show;
+  String identifiedText = '';
+
   final ImagePicker _picker = ImagePicker();
+
   void _pickImage() async {
     final XFile image = await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
       image_to_Show = File(image.path);
     });
+  }
+
+  void extarctText() async {
+    final GoogleVisionImage visionImage =
+        GoogleVisionImage.fromFile(image_to_Show);
+    final TextRecognizer textRecognizer =
+        GoogleVision.instance.textRecognizer();
+    final VisionText visionText =
+        await textRecognizer.processImage(visionImage);
+    String text = visionText.text;
+    print(text);
+    setState(() {
+      identifiedText = text;
+    });
+    // for (TextBlock block in visionText.blocks) {
+    //   final Rect boundingBox = block.boundingBox;
+    //   final List<Offset> cornerPoints = block.cornerPoints;
+    //   final String text = block.text;
+    //   final List<RecognizedLanguage> languages = block.recognizedLanguages;
+
+    //   for (TextLine line in block.lines) {
+    //     // Same getters as TextBlock
+    //     for (TextElement element in line.elements) {
+    //       // Same getters as TextBlock
+    //     }
+    //   }
+    // }
   }
 
   @override
@@ -40,9 +70,9 @@ class _MyAppState extends State<MyApp> {
             children: [
               Container(
                 height: 200,
-                child: image_to_Show != null
-                    ? Image.file(image_to_Show)
-                    : Text("Select Iamge"),
+                child: identifiedText == ''
+                    ? Text("Select an Image")
+                    : Text(identifiedText),
               ),
               ElevatedButton(
                 onPressed: _pickImage,
@@ -51,10 +81,14 @@ class _MyAppState extends State<MyApp> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    image_to_Show = null;
+                    identifiedText = '';
                   });
                 },
                 child: Text("Clear"),
+              ),
+              ElevatedButton(
+                onPressed: extarctText,
+                child: Text("Extract Text"),
               ),
             ],
           ),
