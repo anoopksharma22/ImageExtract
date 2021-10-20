@@ -1,106 +1,65 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:google_ml_kit/google_ml_kit.dart';
 
 void main() {
-  runApp(MyPage());
+  runApp(MyApp());
 }
 
-class MyPage extends StatefulWidget {
+class MyApp extends StatefulWidget {
+  const MyApp({Key key}) : super(key: key);
+
   @override
-  _MyPageState createState() => _MyPageState();
+  _MyAppState createState() => _MyAppState();
 }
 
-class _MyPageState extends State<MyPage> {
-  /// Variables
-  File imageFile;
+class _MyAppState extends State<MyApp> {
+  File image_to_Show;
+  final ImagePicker _picker = ImagePicker();
+  void _pickImage() async {
+    final XFile image = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      image_to_Show = File(image.path);
+    });
+  }
 
-  /// Widget
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: "ImagePicker",
       home: Scaffold(
-          appBar: AppBar(
-            title: const Text("Image Picker"),
+        appBar: AppBar(
+          title: Text("ImagePicker"),
+        ),
+        body: Container(
+          width: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                height: 200,
+                child: image_to_Show != null
+                    ? Image.file(image_to_Show)
+                    : Text("Select Iamge"),
+              ),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text("Select Image"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    image_to_Show = null;
+                  });
+                },
+                child: Text("Clear"),
+              ),
+            ],
           ),
-          body: Container(
-              child: imageFile == null
-                  ? Container(
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          RaisedButton(
-                            color: Colors.greenAccent,
-                            onPressed: () {
-                              _getFromGallery();
-                            },
-                            child: const Text("PICK FROM GALLERY"),
-                          ),
-                          Container(
-                            height: 40.0,
-                          ),
-                          RaisedButton(
-                            color: Colors.lightGreenAccent,
-                            onPressed: () {
-                              _getFromCamera();
-                            },
-                            child: const Text("PICK FROM CAMERA"),
-                          ),
-                        ],
-                      ),
-                    )
-                  : Column(
-                      children: [
-                        Container(
-                          child: Image.file(
-                            imageFile,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        RaisedButton(
-                          color: Colors.lightBlueAccent,
-                          onPressed: () {
-                            _setClearImage();
-                          },
-                          child: const Text("Clear Image"),
-                        )
-                      ],
-                    ))),
+        ),
+      ),
     );
-  }
-
-  /// Get from gallery
-  _getFromGallery() async {
-    PickedFile pickedFile = await ImagePicker().getImage(
-      source: ImageSource.gallery,
-      maxWidth: 1800,
-      maxHeight: 1800,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  /// Get from Camera
-  _getFromCamera() async {
-    PickedFile pickedFile = await ImagePicker().getImage(
-      source: ImageSource.camera,
-      maxWidth: 1800,
-      maxHeight: 1800,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  _setClearImage() async {
-    setState(() {
-      imageFile = null;
-    });
   }
 }
